@@ -16,23 +16,10 @@ func location(h [4]uint64, i uint) uint64 {
 	return h[ii%2] + ii*h[2+(((ii+(ii%2))%4)/2)]
 }
 
-// MultiTest returns true if one bloom filter contains the data, false
-// otherwise.
-func MultiTest(data []byte, locs []uint64, bfs []*BloomFilter) bool {
-	// assume same size
-	var k uint
-	for _, f := range bfs {
-		if f.k > k {
-			k = f.k
-		}
-	}
-
-	// calculate locations
-	h := baseHashes(data)
-	for i := uint(0); i < k; i++ {
-		locs[i] = location(h, i)
-	}
-
+// MultiTest returns true if one bloom filter contains the data represented by
+// a slice of locations, false otherwise. The length of locations should be at
+// least the greatest k from the Bloom filters.
+func MultiTest(locs []uint64, bfs []*BloomFilter) bool {
 	// test in each bloom filter
 	for _, bf := range bfs {
 		if bf.test(locs) {
@@ -40,4 +27,17 @@ func MultiTest(data []byte, locs []uint64, bfs []*BloomFilter) bool {
 		}
 	}
 	return false
+}
+
+// Locations returns a list of hash locations representing a data item.
+func Locations(data []byte, k uint) []uint64 {
+	locs := make([]uint64, k)
+
+	// calculate locations
+	h := baseHashes(data)
+	for i := uint(0); i < k; i++ {
+		locs[i] = location(h, i)
+	}
+
+	return locs
 }

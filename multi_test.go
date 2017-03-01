@@ -38,10 +38,7 @@ func RandStringBytesMaskImprSrc(n int) string {
 
 func BenchmarkBloom1(b *testing.B) {
 
-	var (
-		ids  []string
-		locs = make([]uint64, 100)
-	)
+	var ids []string
 	const (
 		e = 20000
 	)
@@ -99,7 +96,8 @@ func BenchmarkBloom1(b *testing.B) {
 				for i := 0; i < len(ids); i++ {
 					s := ids[i%len(ids)]
 					if tc.multi {
-						if MultiTest([]byte(s), locs, bfs) {
+						locs := Locations([]byte(s), 10)
+						if MultiTest(locs, bfs) {
 							contains++
 						}
 					} else {
@@ -118,12 +116,11 @@ func BenchmarkBloom1(b *testing.B) {
 
 func TestMultiTest(t *testing.T) {
 	var (
-		m    uint = 1024
-		k    uint = 5
-		v1        = []byte("value")
-		v2        = []byte("value2")
-		v3        = []byte("value3")
-		locs      = make([]uint64, 100)
+		m  uint = 1024
+		k  uint = 5
+		v1      = []byte("value")
+		v2      = []byte("value2")
+		v3      = []byte("value3")
 	)
 	bf := New(m, k)
 	bf.Add(v1)
@@ -143,14 +140,14 @@ func TestMultiTest(t *testing.T) {
 		t.Fail()
 	}
 
-	if !MultiTest(v1, locs, []*BloomFilter{bf, bf2}) {
+	if !MultiTest(Locations(v1, 10), []*BloomFilter{bf, bf2}) {
 		t.Fail()
 	}
 
-	if !MultiTest(v2, locs, []*BloomFilter{bf, bf2}) {
+	if !MultiTest(Locations(v2, 10), []*BloomFilter{bf, bf2}) {
 		t.Fail()
 	}
-	if MultiTest(v3, locs, []*BloomFilter{bf, bf2}) {
+	if MultiTest(Locations(v3, 10), []*BloomFilter{bf, bf2}) {
 		t.Fail()
 	}
 }
